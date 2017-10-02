@@ -1,0 +1,3 @@
+/Users/lianz/Work/csc2521/Assignment1/build/CMakeFiles/rebuild_cache.dir
+/Users/lianz/Work/csc2521/Assignment1/build/CMakeFiles/edit_cache.dir
+/Users/lianz/Work/csc2521/Assignment1/build/CMakeFiles/voxelizer.dir
