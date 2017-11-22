@@ -9,6 +9,8 @@
 /Users/lianz/Work/csc2521/Assignment1/include/CompFab.h
 cmath
 -
+vector
+-
 
 /Users/lianz/Work/csc2521/Assignment1/include/Mesh.h
 map
@@ -23,6 +25,8 @@ fstream
 /Users/lianz/Work/csc2521/Assignment1/source/CompFab.cpp
 ../include/CompFab.h
 /Users/lianz/Work/csc2521/Assignment1/include/CompFab.h
+iostream
+-
 
 /Users/lianz/Work/csc2521/Assignment1/source/Mesh.cpp
 ../include/Mesh.h
@@ -52,6 +56,8 @@ string.h
 iostream
 -
 vector
+-
+stdlib.h
 -
 ../include/CompFab.h
 /Users/lianz/Work/csc2521/Assignment1/include/CompFab.h

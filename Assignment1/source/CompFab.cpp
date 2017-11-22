@@ -6,7 +6,7 @@
 //
 
 #include "../include/CompFab.h"
-
+#include <iostream>
 
 using namespace CompFab;
 
@@ -146,6 +146,156 @@ CompFab::VoxelGridStruct::~VoxelGridStruct()
     delete[] m_insideArray;
 }
 
+MeshTree* CompFab::MeshTree::build(std::vector<Triangle> meshList)
+{       
+    bbox = BoundingBox();
+    bbox.x_min = bbox.x_max = meshList[0].m_v1.m_x;
+    bbox.y_min = bbox.y_max = meshList[0].m_v1.m_y;
+    bbox.z_min = bbox.z_max = meshList[0].m_v1.m_z;
+    for (unsigned int i=0; i < meshList.size(); i++) {
+        double x_min_new = std::min(meshList[i].m_v1.m_x, 
+                           std::min(meshList[i].m_v2.m_x,
+                                    meshList[i].m_v3.m_x));
+        double x_max_new = std::max(meshList[i].m_v1.m_x, 
+                           std::max(meshList[i].m_v2.m_x,
+                                    meshList[i].m_v3.m_x));
+        double y_min_new = std::min(meshList[i].m_v1.m_y, 
+                           std::min(meshList[i].m_v2.m_y,
+                                    meshList[i].m_v3.m_y));
+        double y_max_new = std::max(meshList[i].m_v1.m_y, 
+                           std::max(meshList[i].m_v2.m_y,
+                                    meshList[i].m_v3.m_y));
+        double z_min_new = std::min(meshList[i].m_v1.m_z, 
+                           std::min(meshList[i].m_v2.m_z,
+                                    meshList[i].m_v3.m_z));
+        double z_max_new = std::max(meshList[i].m_v1.m_z, 
+                           std::max(meshList[i].m_v2.m_z,
+                                    meshList[i].m_v3.m_z));
+
+        bbox.update(x_min_new, y_min_new, z_min_new, 
+                    x_max_new, y_max_new, z_max_new);
+    }
+
+    return build(meshList, bbox);
+}
+
+
+MeshTree* CompFab::MeshTree::build(std::vector<Triangle> meshList, BoundingBox bbox)
+{    
+    MeshTree* meshTree = new MeshTree();
+    meshTree->left = NULL;
+    meshTree->right = NULL;
+    meshTree->bbox = bbox;
+    meshTree->meshs = meshList; 
+    if (meshList.size() == 0) {
+        meshTree->isLeaf = true;
+        return meshTree;
+    }
+    else if (meshList.size() <= 10) {
+        meshTree->isLeaf = true;
+        return meshTree;
+    }
+    else {
+        meshTree->isLeaf = false;
+        int axisNum = bbox.maxAxis();
+        double splitPoint;
+        BoundingBox bboxLeft = bbox, bboxRight = bbox; //might have problem
+        std::vector<Triangle> leftList, rightList;
+        if (axisNum == 1) {
+            splitPoint = (bbox.x_max + bbox.x_min) / 2;
+            for (unsigned int i=0; i < meshList.size(); i++) {
+                if ((meshList[i].m_v1.m_x + meshList[i].m_v2.m_x + meshList[i].m_v3.m_x) / 3 <= splitPoint) {
+                    leftList.push_back(meshList[i]);
+                }
+                else {
+                    rightList.push_back(meshList[i]);
+                }
+            }
+            bboxLeft.x_max = bboxRight.x_min = splitPoint;
+        }
+        else if(axisNum == 2) {
+            splitPoint = (bbox.y_max + bbox.y_min) / 2;
+            for (unsigned int i=0; i < meshList.size(); i++) {
+                if ((meshList[i].m_v1.m_y + meshList[i].m_v2.m_y + meshList[i].m_v3.m_y) / 3 <= splitPoint) {
+                    leftList.push_back(meshList[i]);
+                }
+                else {
+                    rightList.push_back(meshList[i]);
+                }
+            }
+            bboxLeft.y_max = bboxRight.y_min = splitPoint;
+        }
+        else {
+            splitPoint = (bbox.z_max + bbox.z_min) / 2;
+            for (unsigned int i=0; i < meshList.size(); i++) {
+                if ((meshList[i].m_v1.m_z + meshList[i].m_v2.m_z + meshList[i].m_v3.m_z) / 3 <= splitPoint) {
+                    leftList.push_back(meshList[i]);
+                }
+                else {
+                    rightList.push_back(meshList[i]);
+                }
+            }
+            bboxLeft.z_max = bboxRight.z_min = splitPoint;
+        }
+
+        //log of creating tree
+        // std::cout << "=================="  << std::endl;
+        // std::cout << leftList.size() << std::endl;
+        // std::cout << bboxLeft.x_min << "|" << bboxLeft.x_max << std::endl;
+        // std::cout << bboxLeft.y_min << "|" << bboxLeft.y_max << std::endl;
+        // std::cout << bboxLeft.z_min << "|" << bboxLeft.z_max << std::endl;
+        // std::cout << rightList.size() << std::endl;
+        // std::cout << bboxRight.x_min << "|" << bboxRight.x_max << std::endl;
+        // std::cout << bboxRight.y_min << "|" << bboxRight.y_max << std::endl;
+        // std::cout << bboxRight.z_min << "|" << bboxRight.z_max << std::endl;
+
+        meshTree->left = build(leftList, bboxLeft);
+        meshTree->right = build(rightList, bboxRight);
+
+        return meshTree;
+    }
+}
+CompFab::BoundingBox::BoundingBoxStruct(){
+    x_min = x_max = y_min = y_max = z_min = z_max = 0;
+}
+
+
+void CompFab::BoundingBox::update(double x_min_new, double y_min_new, double z_min_new, 
+                                  double x_max_new, double y_max_new, double z_max_new)
+{
+    if (x_min_new < x_min) {
+        x_min = x_min_new;
+        }
+    if (y_min_new < y_min) {
+        y_min = y_min_new;
+        }
+    if (z_min_new < z_min) {
+        z_min = z_min_new;
+        }
+    if (x_max_new > x_max) {
+        x_max = x_max_new;
+        }
+    if (y_max_new > y_max) {
+        y_max = y_max_new;
+        }
+    if (z_max_new > z_max) {
+        z_max = z_max_new;
+    }
+}
+
+int CompFab::BoundingBox::maxAxis() 
+{
+    double x_diff = x_max - x_min;
+    double y_diff = y_max - y_min;
+    double z_diff = z_max - z_min;
+    if (x_diff >= y_diff && x_diff >= z_diff) {
+        return 1;
+    }
+    else if(y_diff >= x_diff && y_diff >= z_diff) {
+        return 2;
+    }
+    return 3;
+}
 
 
 

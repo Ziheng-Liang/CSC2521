@@ -11,6 +11,7 @@
 #define EPSILON 1e-9
 
 #include <cmath>
+#include <vector>
 
 namespace CompFab
 {
@@ -130,6 +131,32 @@ namespace CompFab
         Vec3 m_lowerLeft;
         
     } VoxelGrid;
+
+    typedef struct BoundingBoxStruct
+    {
+        BoundingBoxStruct();
+        void update(double x_min_new, double y_min_new, double z_min_new, 
+                    double x_max_new, double y_max_new, double z_max_new);
+        int maxAxis();
+        double x_min, y_min, z_min, x_max, y_max, z_max;
+
+    } BoundingBox; 
+
+    class MeshTree
+    {
+        public:
+            MeshTree* left;
+            MeshTree* right;
+            bool isLeaf;
+            BoundingBox bbox;
+            std::vector<Triangle> meshs;
+
+            // MeshTree();
+            MeshTree* build(std::vector<Triangle> meshList);
+            MeshTree* build(std::vector<Triangle> meshList, BoundingBox boundingBox);
+    };
+
+    
 }
 
 
